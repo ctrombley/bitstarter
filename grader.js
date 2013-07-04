@@ -17,34 +17,35 @@ var assertFileExists = function(infile) {
     return instr;
 };
 
-var cheerioHtmlFile = function(htmlfile) {
-    return cheerio.load(fs.readFileSync(htmlfile));
+var loadChecks = function(checksFile) {
+    return JSON.parse(fs.readFileSync(checksFile));
 };
 
-var loadChecks = function(checksfile) {
-    return JSON.parse(fs.readFileSync(checksfile));
+var checkHtmlFile = function(htmlfile, checksFile) {
+    var content = fs.readFileSync(htmlfile);
+    return checkContent(content, checksFile);
 };
 
-var checkHtmlFile = function(htmlfile, checksfile) {
-    $ = cheerioHtmlFile(htmlfile);
-    checkContent($, checksFile);
-};
-
-var checkUrl = function(url, checksFile) {
+var getUrl = function(url, callback) {
     rest.get(url).on('complete', function(res) {
-        $ = cheerio.load(res);
-        checkContent($, checksFile);
+        callback(res);
     });
 }
 
-var checkContent = function($, checksFile) {
-    var checks = loadChecks(checksfile).sort();
+var checkContent = function(content, checksFile) {
+    $ = cheerio.load(content);
+    var checks = loadChecks(checksFile).sort();
     var out = {};
     for(var ii in checks) {
         var present = $(checks[ii]).length > 0;
         out[checks[ii]] = present;
     }
     return out;
+}
+
+var printResults = function(checkJson) {
+    var outJson = JSON.stringify(checkJson, null, 4);
+    console.log(outJson);
 }
 
 if(require.main == module) {
@@ -56,14 +57,16 @@ if(require.main == module) {
 
     var checkJson;
     if (program.url) {
-        checkJson = checkUrl(program.url, program.checks)
+        getUrl(program.url, function(res) {
+            checkJson = checkContent(res, program.checks)
+            printResults(checkJson);
+        })
     }
     else if (program.file) {
         checkJson = checkHtmlFile(program.file, program.checks)
+        printResults(checkJson);
     }
 
-    var outJson = JSON.stringify(checkJson, null, 4);
-    console.log(outJson);
 } else {
     exports.checkHtmlFile = checkHtmlFile;
     exports.checkUrl = checkUrl;
