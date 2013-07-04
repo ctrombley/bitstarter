@@ -9,7 +9,7 @@ app.get('/', function(req, res) {
         readStream.pipe(res);
     });
 
-    readStream.on('error'), function () {
+    readStream.on('error', function () {
         res.end(err);
     });
 });
