@@ -6,7 +6,7 @@ var app = express.createServer(express.logger());
 app.get('/', function(req, res) {
 
 
-    fs.createReadStream('index.html');
+    var readStream = fs.createReadStream('index.html');
     readStream.on('open', function () {
         res.writeHead(200, {
             'Content-Type': 'text/html'
