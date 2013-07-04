@@ -5,7 +5,6 @@ var app = express.createServer(express.logger());
 
 app.get('/', function(req, res) {
 
-
     var readStream = fs.createReadStream('index.html');
     readStream.on('open', function () {
         res.writeHead(200, {
